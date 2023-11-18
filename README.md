@@ -1,6 +1,6 @@
 # Sanjagh
 
-Simple k8s operator to observe deployments.
+Simple k8s operator to handle deployments.
 
 ## Description
 
@@ -9,7 +9,6 @@ Sanjagh aims to demonstrate best practices for how using operators, I tried to k
 ## Getting Started
 
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ```sh
 # initialize base project
@@ -60,10 +59,6 @@ UnDeploy the controller from the cluster:
 ```sh
 make undeploy
 ```
-
-## Contributing
-
-// TODO(user): Add detailed information on how you would like others to contribute to this project
 
 ### How it works
 
