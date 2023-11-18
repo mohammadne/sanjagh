@@ -1,0 +1,12 @@
+apiVersion: apps.mohammadne.me/v1alpha1
+kind: Executer
+metadata:
+  labels:
+    app.kubernetes.io/name: executer
+    app.kubernetes.io/instance: executer-sample
+    app.kubernetes.io/part-of: sanjagh
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: sanjagh
+  name: executer-sample
+spec:
+  # TODO(user): Add fields here
