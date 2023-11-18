@@ -96,6 +96,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Executer")
 		os.Exit(1)
 	}
+	if err = (&appsv1alpha1.Executer{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Executer")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
