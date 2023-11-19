@@ -1,0 +1,24 @@
+---
+- name: "Get list of docker networks"
+  shell: docker network ls | tail -n +2 | awk '{print $2}'
+  register: existing_docker_networks
+  changed_when: false
+
+- name: "Create external network bridge"
+  when: external_bridge_name not in existing_docker_networks.stdout_lines
+  shell: |
+    docker network create --driver bridge "{{ external_bridge_name }}" \
+      --opt com.docker.network.container_iface_prefix="{{ external_bridge_interface_prefix }}" \
+      --opt com.docker.network.bridge.name="{{ external_bridge_name }}" \
+      --opt com.docker.network.driver.mtu="{{ external_bridge_mtu }}" \
+      --subnet "{{ external_network_cidr }}"
+
+- name: "Get list kind nodes"
+  shell: kind get nodes --name "{{ k8s_cluster_name }}"
+  register: kind_nodes
+  changed_when: false
+
+- name: "Connect external network bridge to kind container nodes"
+  with_items: "{{ kind_nodes.stdout_lines }}"
+  ignore_errors: yes # ignore on "already exists" error
+  shell: docker network connect "{{ external_bridge_name }}" "{{ item }}"
