@@ -41,7 +41,7 @@ func NewManager(cfg *config.Config) *cobra.Command {
 	cmd.Flags().IntVar(&manager.metricsPort, "metrics-bind-address", 8080, "The port the metric endpoint binds to")
 	cmd.Flags().IntVar(&manager.probePort, "health-probe-bind-address", 8081, "The port the probe endpoint binds to")
 	cmd.Flags().StringVar(&manager.kubeconfig, "kubeconfig", "", "The kubeconfig file path")
-	cmd.Flags().BoolVar(&manager.leaderElection, "leader-elect", true, "Enable leader election for controller manager. "+
+	cmd.Flags().BoolVar(&manager.leaderElection, "leader-elect", false, "Enable leader election for controller manager. "+
 		"Enabling this will ensure there is only one active controller manager.")
 
 	return cmd
