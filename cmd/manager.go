@@ -12,64 +12,75 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
-	appsv1alpha1 "github.com/mohammadne/sanjagh/internal/api/v1alpha1"
-	"github.com/mohammadne/sanjagh/internal/config"
-	"github.com/mohammadne/sanjagh/internal/controllers"
+	appsv1alpha1 "github.com/mohammadne/sanjagh/api/v1alpha1"
+	"github.com/mohammadne/sanjagh/config"
+	"github.com/mohammadne/sanjagh/controllers"
 	"github.com/mohammadne/sanjagh/pkg/logger"
 )
 
-type Manager struct{}
+type ManagerCommand struct {
+	config         *config.Config
+	metricsPort    int
+	probePort      int
+	leaderElection bool
+}
 
-func (manager Manager) Command() *cobra.Command {
-	config := config.Load(true)
+func NewManagerCommand(cfg *config.Config, metricsPort int, probePort int) *cobra.Command {
+	managerCommand := ManagerCommand{
+		config:      cfg,
+		metricsPort: metricsPort,
+		probePort:   probePort,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "manager",
 		Short: "run controller-manager server",
-		Run:   func(_ *cobra.Command, _ []string) { manager.main(config) },
+		Run: func(_ *cobra.Command, _ []string) {
+			managerCommand.main()
+		},
 	}
 
-	cmd.Flags().IntVar(&config.MetricsPort, "metrics-bind-address", 8080, "The port the metric endpoint binds to")
-	cmd.Flags().IntVar(&config.ProbePort, "health-probe-bind-address", 8081, "The port the probe endpoint binds to")
-	cmd.Flags().BoolVar(&config.LeaderElection, "leader-elect", true, "Enable leader election for controller manager. "+
+	cmd.Flags().BoolVar(&managerCommand.leaderElection, "leader-elect", true, "Enable leader election for controller manager. "+
 		"Enabling this will ensure there is only one active controller manager.")
 
 	return cmd
 }
 
-func (*Manager) main(cfg *config.Config) {
-	logger := logger.NewZap(cfg.Logger)
+func (cmd *ManagerCommand) main() {
+	logger := logger.NewZap(cmd.config.Logger)
 
-	var scheme = runtime.NewScheme()
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(appsv1alpha1.AddToScheme(scheme))
-
-	manager, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     fmt.Sprintf(":%d", cfg.MetricsPort),
-		HealthProbeBindAddress: fmt.Sprintf(":%d", cfg.ProbePort),
-		LeaderElection:         cfg.LeaderElection,
-		LeaderElectionID:       "eca9d324.mohammadne.me",
-	})
-
+	controllerManager, err := ctrl.NewManager(ctrl.GetConfigOrDie(), cmd.options())
 	if err != nil {
 		logger.Fatal("Unable to start manager", zap.Error(err))
 	}
 
-	executerController := controllers.NewExecuter(manager.GetClient(), manager.GetScheme(), logger)
-	if err := executerController.SetupWithManager(manager); err != nil {
-		logger.Fatal("Unable to create Executer controller", zap.Error(err))
+	if err := controllers.Register(controllerManager, logger); err != nil {
+		logger.Fatal("Unable to register controllers", zap.Error(err))
 	}
 
-	if err := manager.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+	if err := controllerManager.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		logger.Fatal("Unable to set up health check", zap.Error(err))
 	}
-	if err := manager.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+	if err := controllerManager.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		logger.Fatal("Unable to set up ready check", zap.Error(err))
 	}
 
 	logger.Info("Starting manager")
-	if err := manager.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := controllerManager.Start(ctrl.SetupSignalHandler()); err != nil {
 		logger.Info("Problem running manager", zap.Error(err))
+	}
+}
+
+func (cmd *ManagerCommand) options() ctrl.Options {
+	var scheme = runtime.NewScheme()
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(appsv1alpha1.AddToScheme(scheme))
+
+	return ctrl.Options{
+		Scheme:                 scheme,
+		MetricsBindAddress:     fmt.Sprintf(":%d", cmd.metricsPort),
+		HealthProbeBindAddress: fmt.Sprintf(":%d", cmd.probePort),
+		LeaderElection:         cmd.leaderElection,
+		LeaderElectionID:       "eca9d324.mohammadne.me",
 	}
 }
