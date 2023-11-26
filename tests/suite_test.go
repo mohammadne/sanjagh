@@ -1,4 +1,4 @@
-package apps
+package tests
 
 import (
 	"path/filepath"

@@ -1,13 +1,13 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/ansrivas/fiberprometheus/v2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	admissionv1 "k8s.io/api/admission/v1"
 
 	"github.com/mohammadne/sanjagh/webhook/validation"
 )
@@ -16,66 +16,53 @@ type Server struct {
 	config     *Config
 	logger     *zap.Logger
 	validation validation.Validation
+
+	managmentApp *fiber.App
+	webhookApp   *fiber.App
 }
 
-func New(cfg *Config, lg *zap.Logger, validation validation.Validation) (*Server, error) {
-	return &Server{
+func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server {
+	server := &Server{
 		config:     cfg,
+		logger:     lg,
 		validation: validation,
-		logger:     lg.Named("webhook-server"),
-	}, nil
-}
-
-func (s *Server) Run() error {
-	router := &mux.Router{}
-	router.HandleFunc(s.config.Path, s.handle)
-	server := http.Server{Addr: s.config.ListenAddr, Handler: router}
-	return server.ListenAndServeTLS(s.config.TLSCert, s.config.TLSKey)
-}
-
-func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	admissionReview, err := parseRequest(*r)
-	if err != nil {
-		s.handleError(err, "could not parse admission review request", []zapcore.Field{}, w)
-		return
 	}
 
-	if err := s.validation.Validate(ctx, admissionReview); err != nil {
-		fields := commonLoggerFields(admissionReview)
-		s.handleError(err, "error validating resource", fields, w)
-		return
-	}
+	// Managment Endpoints
 
-	if err := writeResponse(admissionReview, w); err != nil {
-		fields := resultLoggerFields(admissionReview)
-		s.handleError(err, "could not write response", fields, w)
-		return
-	}
+	server.managmentApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
+	server.managmentApp.Use(cors.New())
 
-	s.logger.Info("handled admission review")
+	healthz := server.managmentApp.Group("healthz")
+	healthz.Get("/liveness", server.livenessHandler)
+	healthz.Get("/readiness", server.readinessHandler)
+
+	prometheus := fiberprometheus.New("sanjagh")
+	prometheus.RegisterAt(server.managmentApp, "/metrics")
+	server.managmentApp.Use(prometheus.Middleware)
+
+	// Webhook Endpoints
+
+	server.webhookApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
+	server.webhookApp.Use(cors.New())
+
+	server.webhookApp.Post("/validation", server.validationHandler)
+	server.webhookApp.Post("/mutation", server.mutationHandler)
+	server.webhookApp.Post("/conversion", server.conversionHandler)
+
+	return server
 }
 
-func (s *Server) handleError(err error, message string, fields []zapcore.Field, w http.ResponseWriter) {
-	s.logger.Error(message, append(fields, zap.Error(err))...)
-	http.Error(w, fmt.Sprintf("%s: %v", message, err), http.StatusBadRequest)
-}
+func (server *Server) Serve(managmentPort, webhookPort int) {
+	go func() {
+		addr := fmt.Sprintf(":%d", managmentPort)
+		err := server.managmentApp.ListenTLS(addr, server.config.TLSCert, server.config.TLSKey)
+		server.logger.Fatal("error resolving managment server", zap.Error(err))
+	}()
 
-func commonLoggerFields(ar *admissionv1.AdmissionReview) []zapcore.Field {
-	return []zapcore.Field{
-		zap.String("resource", ar.Request.Resource.String()),
-		zap.String("namespace", ar.Request.Namespace),
-		zap.String("name", ar.Request.Name),
-		zap.Any("operation", ar.Request.Operation),
-		zap.String("user", ar.Request.UserInfo.Username),
-		zap.String("kind", ar.Request.Kind.String()),
-	}
-}
-
-func resultLoggerFields(ar *admissionv1.AdmissionReview) []zapcore.Field {
-	return []zapcore.Field{
-		zap.Bool("allowed", ar.Response.Allowed),
-		zap.String("reason", ar.Response.Result.Message),
-	}
+	go func() {
+		addr := fmt.Sprintf(":%d", webhookPort)
+		err := server.webhookApp.ListenTLS(addr, server.config.TLSCert, server.config.TLSKey)
+		server.logger.Fatal("error resolving webhook server", zap.Error(err))
+	}()
 }

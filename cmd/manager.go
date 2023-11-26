@@ -15,63 +15,71 @@ import (
 	appsv1alpha1 "github.com/mohammadne/sanjagh/api/v1alpha1"
 	"github.com/mohammadne/sanjagh/config"
 	"github.com/mohammadne/sanjagh/controllers"
+	"github.com/mohammadne/sanjagh/pkg/k8s"
 	"github.com/mohammadne/sanjagh/pkg/logger"
 )
 
-type ManagerCommand struct {
+type Manager struct {
 	config         *config.Config
 	metricsPort    int
 	probePort      int
 	leaderElection bool
+	kubeconfig     string
 }
 
-func NewManagerCommand(cfg *config.Config, metricsPort int, probePort int) *cobra.Command {
-	managerCommand := ManagerCommand{
-		config:      cfg,
-		metricsPort: metricsPort,
-		probePort:   probePort,
-	}
+func NewManager(cfg *config.Config) *cobra.Command {
+	manager := Manager{config: cfg}
 
 	cmd := &cobra.Command{
 		Use:   "manager",
 		Short: "run controller-manager server",
 		Run: func(_ *cobra.Command, _ []string) {
-			managerCommand.main()
+			manager.main()
 		},
 	}
 
-	cmd.Flags().BoolVar(&managerCommand.leaderElection, "leader-elect", true, "Enable leader election for controller manager. "+
+	cmd.Flags().IntVar(&manager.metricsPort, "metrics-bind-address", 8080, "The port the metric endpoint binds to")
+	cmd.Flags().IntVar(&manager.probePort, "health-probe-bind-address", 8081, "The port the probe endpoint binds to")
+	cmd.Flags().StringVar(&manager.kubeconfig, "kubeconfig", "", "The kubeconfig file path")
+	cmd.Flags().BoolVar(&manager.leaderElection, "leader-elect", true, "Enable leader election for controller manager. "+
 		"Enabling this will ensure there is only one active controller manager.")
 
 	return cmd
 }
 
-func (cmd *ManagerCommand) main() {
+func (cmd *Manager) main() {
 	logger := logger.NewZap(cmd.config.Logger)
 
-	controllerManager, err := ctrl.NewManager(ctrl.GetConfigOrDie(), cmd.options())
+	kubeConfig, err := k8s.KubeConfig(cmd.kubeconfig)
+	if err != nil {
+		logger.Fatal("Unable to create kubernetes configuration", zap.Error(err))
+	}
+
+	manager, err := ctrl.NewManager(kubeConfig, cmd.options())
 	if err != nil {
 		logger.Fatal("Unable to start manager", zap.Error(err))
 	}
 
-	if err := controllers.Register(controllerManager, logger); err != nil {
+	if err := controllers.Register(manager, logger); err != nil {
 		logger.Fatal("Unable to register controllers", zap.Error(err))
 	}
 
-	if err := controllerManager.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+	// TODO: add your custom metrics here
+
+	if err := manager.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		logger.Fatal("Unable to set up health check", zap.Error(err))
 	}
-	if err := controllerManager.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+	if err := manager.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		logger.Fatal("Unable to set up ready check", zap.Error(err))
 	}
 
 	logger.Info("Starting manager")
-	if err := controllerManager.Start(ctrl.SetupSignalHandler()); err != nil {
+	if err := manager.Start(ctrl.SetupSignalHandler()); err != nil {
 		logger.Info("Problem running manager", zap.Error(err))
 	}
 }
 
-func (cmd *ManagerCommand) options() ctrl.Options {
+func (cmd *Manager) options() ctrl.Options {
 	var scheme = runtime.NewScheme()
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(appsv1alpha1.AddToScheme(scheme))
