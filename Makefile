@@ -101,7 +101,7 @@ build: pre-process ## Build sangagh binary.
 	go build -o bin/manager main.go
 
 .PHONY: run
-run: pre-process ## Run sangagh from your host.
+run: pre-process build ## Run sangagh from your host.
 	go run ./main.go
 
 .PHONY: docker-build
@@ -124,11 +124,11 @@ version:
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	kubectl apply -f deployment/sangagh/crds
+	kubectl apply -f deployment/sanjagh/crds
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	kubectl delete --ignore-not-found=$(ignore-not-found) -f deployment/sangagh/crds
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deployment/sanjagh/crds
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy sanjagh to the K8s cluster specified in ~/.kube/config.

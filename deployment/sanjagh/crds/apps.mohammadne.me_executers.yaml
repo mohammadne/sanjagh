@@ -44,9 +44,6 @@ spec:
               image:
                 description: Image is the name of the image to be used for executer
                 type: string
-              name:
-                description: Name is the name of the Executer
-                type: string
               replication:
                 description: Replication is the replicas for the executer
                 format: int32

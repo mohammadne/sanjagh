@@ -6,10 +6,6 @@ import (
 
 // ExecuterSpec defines the desired state of Executer
 type ExecuterSpec struct {
-	// Name is the name of the Executer
-	// +kubebuilder:validation:Required
-	Name string `json:"name,omitempty"`
-
 	// Image is the name of the image to be used for executer
 	// +kubebuilder:validation:Required
 	Image string `json:"image,omitempty"`

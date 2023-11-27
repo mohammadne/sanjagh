@@ -12,6 +12,15 @@ operator-helm:
       - apiGroups: ["apps"]
         resources: ["deployments"]
         verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+      - apiGroups: ["apps.mohammadne.me"]
+        resources: ["executers"]
+        verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+      - apiGroups: ["apps.mohammadne.me"]
+        resources: ["executers/status"]
+        verbs: ["get", "update", "patch"]
+      - apiGroups: ["apps.mohammadne.me"]
+        resources: ["executers/finalizers"]
+        verbs: ["update"]
 
     services:
       metrics:

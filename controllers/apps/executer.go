@@ -33,10 +33,6 @@ func NewExecuter(client client.Client, scheme *runtime.Scheme, lg *zap.Logger) *
 	return &executer{Client: client, scheme: scheme, logger: lg.Named("executer-controller")}
 }
 
-//+kubebuilder:rbac:groups=apps.mohammadne.me,resources=executers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=apps.mohammadne.me,resources=executers/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=apps.mohammadne.me,resources=executers/finalizers,verbs=update
-
 const executerFinalizer = "apps.mohammadne.me/finalizer"
 
 func (r *executer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
