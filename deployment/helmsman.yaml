@@ -46,5 +46,5 @@ apps:
     chart: "./sanjagh"
     enabled: true
     version: "0.1.0"
-    # secretsFiles:
-    #   - ./sanjagh/secrets.yaml
+    secretsFiles:
+      - ./sanjagh/secrets.yaml

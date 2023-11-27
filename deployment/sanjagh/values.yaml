@@ -29,8 +29,8 @@ operator-helm:
     # arguments to be passed to the manager container
     args:
       - manager
-      - --metrics-bind-address=127.0.0.1:8080
-      - --health-probe-bind-address=:8081
+      - --metrics-bind-port=8080
+      - --health-probe-bind-port=8081
       - --leader-elect
 
     # how much resource to be used
@@ -87,8 +87,8 @@ operator-helm:
 
     args:
       - webhook
-      - --managment-bind-address=:8080
-      - --master-bind-address=:443
+      - --managment-bind-address=8080
+      - --master-bind-address=443
 
     tls:
       directory: /tmp/k8s-webhook-server/serving-certs
