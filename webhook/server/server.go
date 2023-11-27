@@ -17,8 +17,8 @@ type Server struct {
 	logger     *zap.Logger
 	validation validation.Validation
 
-	managmentApp *fiber.App
-	webhookApp   *fiber.App
+	managmentApp *fiber.App // the metrics and probe App
+	masterApp    *fiber.App // the webhook App
 }
 
 func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server {
@@ -41,14 +41,14 @@ func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server 
 	prometheus.RegisterAt(server.managmentApp, "/metrics")
 	server.managmentApp.Use(prometheus.Middleware)
 
-	// Webhook Endpoints
+	// Master Endpoints
 
-	server.webhookApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
-	server.webhookApp.Use(cors.New())
+	server.masterApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
+	server.masterApp.Use(cors.New())
 
-	server.webhookApp.Post("/validation", server.validationHandler)
-	server.webhookApp.Post("/mutation", server.mutationHandler)
-	server.webhookApp.Post("/conversion", server.conversionHandler)
+	server.masterApp.Post("/validation", server.validationHandler)
+	server.masterApp.Post("/mutation", server.mutationHandler)
+	server.masterApp.Post("/conversion", server.conversionHandler)
 
 	return server
 }
@@ -62,7 +62,7 @@ func (server *Server) Serve(managmentPort, webhookPort int) {
 
 	go func() {
 		addr := fmt.Sprintf(":%d", webhookPort)
-		err := server.webhookApp.ListenTLS(addr, server.config.TLSCert, server.config.TLSKey)
+		err := server.masterApp.ListenTLS(addr, server.config.TLSCert, server.config.TLSKey)
 		server.logger.Fatal("error resolving webhook server", zap.Error(err))
 	}()
 }

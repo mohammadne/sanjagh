@@ -1,0 +1,15 @@
+---
+apiVersion: apps.mohammadne.me/v1alpha1
+kind: Executer
+metadata:
+  name: {{ include "caas-playground.fullname" . }}
+  labels:
+    {{- include "caas-playground.labels" . | nindent 4 }}
+spec:
+  image: python:latest
+  commands: ["python", "-m", "http.server", "8080"]
+  size: 1
+  port: 8080
+  ingress:
+    enabled: true
+    name: my-python-server

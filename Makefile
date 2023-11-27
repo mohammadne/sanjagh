@@ -1,5 +1,5 @@
 # Image URL to use all building/pushing image targets
-IMAGE ?= github.com:mohammadne/sanjagh
+IMAGE ?= ghcr.io/mohammadne/sanjagh
 
 # Set number of cores to use in integration tests parallel execution
 PROCS ?= $(shell grep -c 'cpu[0-9]' /proc/stat)

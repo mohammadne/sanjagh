@@ -1,0 +1,50 @@
+settings:
+  kubeContext: kind-devenv
+  maxHistory: 10
+  timeout: 6000
+
+namespaces:
+  cert-manager:
+    labels:
+      managed-by: helmsman
+  ambassador:
+    labels:
+      managed-by: "helmsman"
+  sanjagh:
+    labels:
+      managed-by: helmsman
+
+helmRepos:
+  jetstack: https://charts.jetstack.io
+  datawire: "https://app.getambassador.io"
+
+apps:
+  cert-manager:
+    name: cert-manager
+    namespace: cert-manager
+    priority: -250000
+    chart: jetstack/cert-manager
+    version: v1.13.2
+    wait: true
+    enabled: true
+    hooks:
+      postInstall: ./cert-manager/cluster-issuer.yaml
+    valuesFiles:
+      - ./cert-manager/values.yaml
+
+  traffic-manager:
+    name: traffic-manager
+    namespace: ambassador
+    priority: -9000
+    chart: datawire/telepresence
+    enabled: true
+    version: 2.14.2
+
+  sanjagh:
+    name: sanjagh
+    namespace: sanjagh
+    chart: "./sanjagh"
+    enabled: true
+    version: "0.1.0"
+    secretsFiles:
+      - ./sanjagh/secrets.yaml

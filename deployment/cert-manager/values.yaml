@@ -1,0 +1,19 @@
+prometheus:
+  servicemonitor:
+    enabled: true
+    labels:
+      monitor: default-prometheus
+
+ingressShim:
+  defaultIssuerName: "letsencrypt"
+  defaultIssuerKind: "ClusterIssuer"
+
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+
+tolerations:
+- key: node-role.kubernetes.io/control-plane
+  operator: Exists
+  effect: NoSchedule
+
+installCRDs: true
