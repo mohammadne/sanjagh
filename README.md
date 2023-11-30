@@ -118,7 +118,7 @@ telepresence helm upgrade
 telepresence connect
 
 # intercept api-server traffic into your localhost via injecting side-car container
-telepresence intercept sanjagh-webhook --port 9443 -n operators --service sanjagh-webhook
+telepresence intercept sanjagh-webhook -n operators --service sanjagh-webhook --port 8443
 ```
 
 3. Install the CRDs into the (local) cluster

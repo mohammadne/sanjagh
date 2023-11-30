@@ -6,7 +6,6 @@ import (
 
 	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.uber.org/zap"
 
 	"github.com/mohammadne/sanjagh/webhook/validation"
@@ -28,10 +27,16 @@ func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server 
 		validation: validation,
 	}
 
-	// Management Endpoints
+	fiberConfig := fiber.Config{
+		JSONEncoder:           json.Marshal,
+		JSONDecoder:           json.Unmarshal,
+		DisableStartupMessage: true,
+	}
 
-	server.managementApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
-	server.managementApp.Use(cors.New())
+	server.managementApp = fiber.New(fiberConfig)
+	server.masterApp = fiber.New(fiberConfig)
+
+	// Management Endpoints
 
 	healthz := server.managementApp.Group("healthz")
 	healthz.Get("/liveness", server.livenessHandler)
@@ -42,9 +47,6 @@ func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server 
 	server.managementApp.Use(prometheus.Middleware)
 
 	// Master Endpoints
-
-	server.masterApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
-	server.masterApp.Use(cors.New())
 
 	server.masterApp.Post("/validation", server.validationHandler)
 	server.masterApp.Post("/mutation", server.mutationHandler)
