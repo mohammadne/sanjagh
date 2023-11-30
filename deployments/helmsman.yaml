@@ -10,7 +10,7 @@ namespaces:
   ambassador:
     labels:
       managed-by: "helmsman"
-  sanjagh:
+  operators:
     labels:
       managed-by: helmsman
 
@@ -38,11 +38,11 @@ apps:
     priority: -9000
     chart: datawire/telepresence
     enabled: true
-    version: 2.14.2
+    version: 2.15.1
 
   sanjagh:
     name: sanjagh
-    namespace: sanjagh
+    namespace: operators
     chart: "./sanjagh"
     enabled: true
     version: "0.1.0"

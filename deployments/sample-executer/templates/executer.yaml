@@ -2,9 +2,9 @@
 apiVersion: apps.mohammadne.me/v1alpha1
 kind: Executer
 metadata:
-  name: {{ include "sanjagh.fullname" . }}
+  name: {{ include "sample-executer.fullname" . }}
   labels:
-    {{- include "sanjagh.labels" . | nindent 4 }}
+    {{- include "sample-executer.labels" . | nindent 4 }}
 spec:
   image: python:latest
   commands: ["python", "-m", "http.server", "8080"]

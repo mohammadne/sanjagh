@@ -58,11 +58,11 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) crd paths="./api/..." output:crd:artifacts:config=deployment/sanjagh/crds
+	$(CONTROLLER_GEN) crd paths="./api/..." output:crd:artifacts:config=deployments/sanjagh/crds
 
 .PHONY: generate
 generate: controller-gen ## Generate apis code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	$(CONTROLLER_GEN) object paths="./api/..."
 
 .PHONY: fmt
 fmt: ## Run go fmt against code.
@@ -124,19 +124,19 @@ version:
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	kubectl apply -f deployment/sanjagh/crds
+	kubectl apply -f deployments/sanjagh/crds
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	kubectl delete --ignore-not-found=$(ignore-not-found) -f deployment/sanjagh/crds
+	kubectl delete --ignore-not-found=$(ignore-not-found) -f deployments/sanjagh/crds
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy sanjagh to the K8s cluster specified in ~/.kube/config.
-	helmsman -apply -f ./deployment/helmsman.yaml
+	helmsman -apply -f ./deployments/helmsman.yaml --update-deps
 
 .PHONY: undeploy
 undeploy: ## Undeploy sanjagh from the K8s cluster specified in ~/.kube/config.
-	helmsman -destroy -f ./deployment/helmsman.yaml
+	helmsman -destroy -f ./deployments/helmsman.yaml
 
 ##@ Build Dependencies
 

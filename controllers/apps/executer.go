@@ -60,9 +60,9 @@ func (r *executer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result
 			return ctrl.Result{}, nil
 		}
 
-		// do finalizer removal stuffs here...
+		log.Info("Doing some finalizer removal stuffs here...")
 
-		log.Info("Removing Finalizer for Executer after successfully perform the operations")
+		log.Info("Removing finalizer of the Executer")
 		if ok := controllerutil.RemoveFinalizer(executer, executerFinalizer); !ok {
 			err := errors.New("Failed to remove finalizer from the Executer")
 			log.Error("Requeue the reconcile loop", zap.Error(err))
@@ -73,6 +73,8 @@ func (r *executer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result
 			log.Error("Failed to update the finalizer after removing finalizer from Executer", zap.Error(err))
 			return ctrl.Result{}, err
 		}
+
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	result, err := r.ReconcileDeployment(ctx, req, executer)
@@ -81,17 +83,17 @@ func (r *executer) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result
 	}
 
 	if !controllerutil.ContainsFinalizer(executer, executerFinalizer) {
-		log.Info("Adding Finalizer for Executer")
+		log.Info("Doing some finalization stuffs here...")
+
+		log.Info("Adding finalizer to the Executer")
 		if ok := controllerutil.AddFinalizer(executer, executerFinalizer); !ok {
 			err := errors.New("Failed to add finalizer into the Executer")
 			log.Error("Requeue the reconcile loop", zap.Error(err))
 			return ctrl.Result{Requeue: true}, nil
 		}
 
-		// do finalizer stuffs here...
-
 		if err := r.Update(ctx, executer); err != nil {
-			log.Error("Failed to update the finalizer after adding finalizer to the Executer", zap.Error(err))
+			log.Error("Updating finalizer failed after adding finalizer to the Executer", zap.Error(err))
 			return ctrl.Result{}, err
 		}
 
