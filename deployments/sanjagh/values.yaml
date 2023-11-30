@@ -5,7 +5,7 @@ operator-helm:
     registry: ghcr.io
     repository: mohammadne/sanjagh
     pullPolicy: Always
-    tag: "v0.1.2-rc2"
+    tag: "v0.1.2-rc4"
 
   manager:
     rules:
@@ -91,7 +91,7 @@ operator-helm:
       - --master-bind-port=443
 
     tls:
-      directory: /tmp/secrets/tls
+      directory: /tmp/secrets
 
     resources:
       limits:
@@ -163,5 +163,5 @@ operator-helm:
       webhook:
         server:
           tls:
-            certificate: /tmp/secrets/tls/crt.pem
-            private_key: /tmp/secrets/tls/key.pem
+            certificate: /tmp/secrets/tls.crt
+            private_key: /tmp/secrets/tls.key
