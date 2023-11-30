@@ -35,7 +35,7 @@ func NewWebhook(cfg *config.Config) *cobra.Command {
 	}
 
 	cmd.Flags().IntVar(&webhook.managementPort, "management-bind-port", 8080, "The port the metric and probe endpoints binds to")
-	cmd.Flags().IntVar(&webhook.masterPort, "master-bind-port", 8081, "The port the webhook server listens on")
+	cmd.Flags().IntVar(&webhook.masterPort, "master-bind-port", 8443, "The port the webhook server listens on")
 	cmd.Flags().StringVar(&webhook.kubeconfig, "kubeconfig", "", "The kubeconfig file path")
 
 	return cmd

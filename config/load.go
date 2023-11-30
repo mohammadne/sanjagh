@@ -95,7 +95,7 @@ func loadConfigmap(k *koanf.Koanf) error {
 		return nil
 	}
 
-	cm, err := os.ReadFile("/tmp/sanjagh/config.yaml")
+	cm, err := os.ReadFile("/tmp/operator/config.yaml")
 	if err != nil {
 		return fmt.Errorf("Error reading currnet namespace: %v", err)
 	}

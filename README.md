@@ -1,10 +1,8 @@
-# Sanjagh
+# Sanjagh 📌
 
-Simple k8s operator to handle deployments.
+> `Sanjagh` is a Persian word meaning Pin
 
-## Description
-
-Sanjagh aims to demonstrate best practices for how using operators, I tried to keep things as simple as possible and demonstrate how to deploy and structure your operator projects.
+Sanjagh is a simple k8s operator to handle deployments and aims to demonstrate best practices for how using operators, I tried to keep things as simple as possible and demonstrate how to deploy and structure your operator projects.
 
 ### How it works
 
