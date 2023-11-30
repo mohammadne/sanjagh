@@ -3,13 +3,15 @@ package server
 import "fmt"
 
 type Config struct {
-	TLSCert string `mapstructure:"tlsCert"`
-	TLSKey  string `mapstructure:"tlsKey"`
+	TLS struct {
+		Certificate string `koanf:"certificate"`
+		PrivateKey  string `koanf:"private_key"`
+	} `koanf:"tls"`
 }
 
 func (c *Config) Validate() error {
-	if c.TLSCert == "" || c.TLSKey == "" {
-		return fmt.Errorf("serverConfig.tlsCert or serverConfig.tlsKey is empty")
+	if c.TLS.Certificate == "" || c.TLS.PrivateKey == "" {
+		return fmt.Errorf("TLS Certificate or PrivateKey is empty")
 	}
 	return nil
 }

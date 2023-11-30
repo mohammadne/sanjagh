@@ -43,13 +43,13 @@ const (
 )
 
 func (v *executerValidator) ValidateReplication(ctx context.Context, executer *v1alpha1.Executer, f *failure.Failure) error {
-	if executer.Spec.Replication < v.config.MinReplication {
-		f.RegisterReason(LowReplication, v.config.MinReplication)
+	if executer.Spec.Replication < v.config.Replication.Minimum {
+		f.RegisterReason(LowReplication, v.config.Replication.Minimum)
 		return nil
 	}
 
-	if executer.Spec.Replication > v.config.MaxReplication {
-		f.RegisterReason(HighReplication, v.config.MaxReplication)
+	if executer.Spec.Replication > v.config.Replication.Maximum {
+		f.RegisterReason(HighReplication, v.config.Replication.Maximum)
 		return nil
 	}
 

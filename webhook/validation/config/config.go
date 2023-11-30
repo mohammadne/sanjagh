@@ -1,6 +1,8 @@
 package config
 
 type Config struct {
-	MinReplication int32 `koanf:"min_replication"`
-	MaxReplication int32 `koanf:"max_replication"`
+	Replication struct {
+		Maximum int32 `koanf:"maximum"`
+		Minimum int32 `koanf:"minimum"`
+	} `koanf:"replication"`
 }

@@ -1,0 +1,14 @@
+---
+logger:
+  development: true
+  level: "info"
+  encoding: "console"
+webhook:
+  server:
+    tls:
+      certificate: secrets/tls/crt.pem
+      private_key: secrets/tls/key.pem
+  validation:
+    replication:
+      maximum: 5
+      minimum: 2

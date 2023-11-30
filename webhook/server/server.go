@@ -17,8 +17,8 @@ type Server struct {
 	logger     *zap.Logger
 	validation validation.Validation
 
-	managmentApp *fiber.App // the metrics and probe App
-	masterApp    *fiber.App // the webhook App
+	managementApp *fiber.App // the metrics and probe App
+	masterApp     *fiber.App // the webhook App
 }
 
 func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server {
@@ -28,18 +28,18 @@ func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server 
 		validation: validation,
 	}
 
-	// Managment Endpoints
+	// Management Endpoints
 
-	server.managmentApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
-	server.managmentApp.Use(cors.New())
+	server.managementApp = fiber.New(fiber.Config{JSONEncoder: json.Marshal, JSONDecoder: json.Unmarshal})
+	server.managementApp.Use(cors.New())
 
-	healthz := server.managmentApp.Group("healthz")
+	healthz := server.managementApp.Group("healthz")
 	healthz.Get("/liveness", server.livenessHandler)
 	healthz.Get("/readiness", server.readinessHandler)
 
 	prometheus := fiberprometheus.New("sanjagh")
-	prometheus.RegisterAt(server.managmentApp, "/metrics")
-	server.managmentApp.Use(prometheus.Middleware)
+	prometheus.RegisterAt(server.managementApp, "/metrics")
+	server.managementApp.Use(prometheus.Middleware)
 
 	// Master Endpoints
 
@@ -53,16 +53,18 @@ func New(cfg *Config, lg *zap.Logger, validation validation.Validation) *Server 
 	return server
 }
 
-func (server *Server) Serve(managmentPort, webhookPort int) {
+func (server *Server) Serve(managementPort, webhookPort int) {
 	go func() {
-		addr := fmt.Sprintf(":%d", managmentPort)
-		err := server.managmentApp.ListenTLS(addr, server.config.TLSCert, server.config.TLSKey)
-		server.logger.Fatal("error resolving managment server", zap.Error(err))
+		addr := fmt.Sprintf(":%d", managementPort)
+		server.logger.Info("Management server listens on", zap.String("address", addr))
+		err := server.managementApp.Listen(addr)
+		server.logger.Fatal("Error resolving management server", zap.Error(err))
 	}()
 
 	go func() {
 		addr := fmt.Sprintf(":%d", webhookPort)
-		err := server.masterApp.ListenTLS(addr, server.config.TLSCert, server.config.TLSKey)
-		server.logger.Fatal("error resolving webhook server", zap.Error(err))
+		server.logger.Info("Master (webhook) server listens on", zap.String("address", addr))
+		err := server.masterApp.ListenTLS(addr, server.config.TLS.Certificate, server.config.TLS.PrivateKey)
+		server.logger.Fatal("Error resolving webhook server", zap.Error(err))
 	}()
 }

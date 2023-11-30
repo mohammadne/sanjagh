@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Logger  *logger.Config `koanf:"logger"`
 	Webhook struct {
-		Server     webhookServer.Config     `koanf:"server"`
-		Validation webhookValidation.Config `koanf:"validation"`
+		Server     *webhookServer.Config     `koanf:"server"`
+		Validation *webhookValidation.Config `koanf:"validation"`
 	} `koanf:"webhook"`
 }

@@ -17,10 +17,10 @@ import (
 )
 
 type Webhook struct {
-	config        *config.Config
-	managmentPort int
-	masterPort    int
-	kubeconfig    string
+	config         *config.Config
+	managementPort int
+	masterPort     int
+	kubeconfig     string
 }
 
 func NewWebhook(cfg *config.Config) *cobra.Command {
@@ -34,7 +34,7 @@ func NewWebhook(cfg *config.Config) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().IntVar(&webhook.managmentPort, "managment-bind-port", 8080, "The port the metric and probe endpoints binds to")
+	cmd.Flags().IntVar(&webhook.managementPort, "management-bind-port", 8080, "The port the metric and probe endpoints binds to")
 	cmd.Flags().IntVar(&webhook.masterPort, "master-bind-port", 8081, "The port the webhook server listens on")
 	cmd.Flags().StringVar(&webhook.kubeconfig, "kubeconfig", "", "The kubeconfig file path")
 
@@ -54,13 +54,13 @@ func (cmd *Webhook) main() {
 		logger.Fatal("Couldn't create cached client", zap.Error(err))
 	}
 
-	validation := validation.NewValidation(&cmd.config.Webhook.Validation, client)
+	validation := validation.NewValidation(cmd.config.Webhook.Validation, client)
 
 	trap := make(chan os.Signal, 1)
 	signal.Notify(trap, syscall.SIGINT, syscall.SIGTERM)
 
-	server.New(&cmd.config.Webhook.Server, logger, validation).
-		Serve(cmd.managmentPort, cmd.masterPort)
+	server.New(cmd.config.Webhook.Server, logger, validation).
+		Serve(cmd.managementPort, cmd.masterPort)
 
 	// Keep this at the bottom of the main function
 	field := zap.String("signal trap", (<-trap).String())
