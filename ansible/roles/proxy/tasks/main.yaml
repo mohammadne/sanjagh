@@ -1,0 +1,23 @@
+---
+- name: Set system-wide proxy
+  lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+  with_items:
+    - 'http_proxy="{{ proxy_address }}"'
+    - 'https_proxy="{{ proxy_address }}"'
+  notify: restart-logind
+
+- name: Install aptitude
+  apt:
+    name: aptitude
+    state: latest
+    update_cache: true
+
+- name: Set APT proxy
+  copy:
+    dest: /etc/apt/apt.conf.d/proxy.conf
+    content: |
+      Acquire::http::Proxy "{{ proxy_address }}";
+      Acquire::https::Proxy "{{ proxy_address }}";
+  notify: update-apt

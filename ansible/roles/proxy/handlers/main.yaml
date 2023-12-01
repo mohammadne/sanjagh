@@ -1,0 +1,9 @@
+---
+- name: restart-logind
+  service:
+    name: systemd-logind.service
+    state: restarted
+
+- name: update-apt
+  apt:
+    update_cache: yes

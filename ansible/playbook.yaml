@@ -2,6 +2,7 @@
   become: yes
   gather_facts: true
   roles:
-    - { role: docker }
+    - { role: proxy }
+    # - { role: docker }
     # - { role: kind }
 

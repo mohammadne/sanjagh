@@ -1,6 +1,13 @@
 ---
-- name: Prerequisite tasks for installing docker
-  include_tasks: prerequisites.yaml
+- name: Install required system packages
+  apt:
+    pkg:
+      - software-properties-common
+      - ca-certificates
+      - curl
+      - gnupg
+    state: latest
+    update_cache: true
 
 - name: Add Docker's official GPG key
   apt_key:
