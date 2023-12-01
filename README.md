@@ -108,17 +108,17 @@ echo $tls_secret | jq '.data."tls.key"' -r | base64 -d > secrets/tls/key.pem
 echo $tls_secret | jq '.data."tls.crt"' -r | base64 -d > secrets/tls/crt.pem
 ```
 
-2. Ensure `telepresence` is installed in your cluster with the same version with your client, you can run `telepresence helm upgrade` to sync the versions
+2. Ensure `telepresence` is installed in your cluster with the same version with your client
 
 ```sh
-# make sure consistency between client and server versions
+# make sure consistency (sync) between client and server versions
 telepresence helm upgrade
 
 # start telepresence agent
 telepresence connect
 
 # intercept api-server traffic into your localhost via injecting side-car container
-telepresence intercept sanjagh-webhook -n operators --service sanjagh-webhook --port 8443
+telepresence intercept sanjagh-webhook -n operators --service sanjagh-webhook --port 8443:master
 ```
 
 3. Install the CRDs into the (local) cluster
