@@ -44,7 +44,11 @@
     - install
 
 - name: make sure that docker was started and enabled
-  service:
+  ansible.builtin.systemd_service:
     name: docker
     state: started
     enabled: yes
+
+- name: Include proxy tasks
+  include_tasks: proxy.yaml
+  when: proxy.enabled is defined and proxy.enabled | bool
