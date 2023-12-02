@@ -1,6 +1,5 @@
 - hosts: server
   become: yes
-  become_user: "{{ ansible_user }}"
   gather_facts: true
   pre_tasks:
     - name: Check if OS distribution is some Debian kind
@@ -10,5 +9,6 @@
   roles:
     - { role: proxy }
     - { role: docker }
+    - { role: yq }
     - { role: kind }
 

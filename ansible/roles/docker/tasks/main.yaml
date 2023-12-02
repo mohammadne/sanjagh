@@ -34,14 +34,17 @@
     state: latest
     update_cache: true
 
-- name: Add docker group to users {{ ansible_user }} groups
+- name: Get current username
+  become: false
+  command: whoami
+  register: whoami
+  changed_when: false
+
+- name: Add docker group to users {{ whoami }} groups
   user:
-    name: "{{ ansible_user }}"
+    name: "{{ whoami.stdout }}"
     append: true
     groups: docker
-  become: true
-  tags:
-    - install
 
 - name: make sure that docker was started and enabled
   ansible.builtin.systemd_service:

@@ -1,5 +1,5 @@
 settings:
-  kubeContext: kind-devenv
+  kubeContext: kind-sanjagh
   maxHistory: 10
   timeout: 6000
 
