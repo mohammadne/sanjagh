@@ -28,6 +28,7 @@ apps:
     wait: true
     enabled: true
     hooks:
+      preInstall: https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-45.1.1/charts/kube-prometheus-stack/crds/crd-servicemonitors.yaml
       postInstall: ./cert-manager/cluster-issuer.yaml
     valuesFiles:
       - ./cert-manager/values.yaml
