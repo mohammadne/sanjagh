@@ -25,6 +25,14 @@ operator-helm:
   webhook:
     replicas: 1
 
+    rules:
+      - apiGroups: ["apps"]
+        resources: ["deployments"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["apps.mohammadne.me"]
+        resources: ["executers"]
+        verbs: ["get", "list", "watch"]
+
     mutation:
       enabled: false
 
